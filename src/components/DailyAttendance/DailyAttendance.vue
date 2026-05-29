@@ -1,160 +1,98 @@
 <template>
-  <div class="card bg-white border-0 rounded-10 mb-4 p-4">
-    <div class="d-sm-flex justify-content-between align-items-center mb-3">
-      </div>
+  <div class="card mb-25 border-0 rounded-0 bg-white">
+    <div style="display:flex; gap:10px; padding:15px; align-items: center;">
+      <input type="date" v-model="selectedDate" @change="fetchData" />
 
-    <div class="search-box mb-3">
-      <input 
-        type="text" 
-        class="form-control form-control-sm" 
-        placeholder="Search Daily Attendance..." 
-        style="width: 250px;"
-      />
-      <i class="flaticon-search-1"></i>
-    </div>
-    
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0 table-adlash" style="white-space: nowrap;">
-        <thead class="table-light">
-          <tr>
-            <th scope="col" class="text-black fw-medium py-3">No</th>
-            <th scope="col" class="text-black fw-medium py-3">Company Branch Name</th>
-            <th scope="col" class="text-black fw-medium py-3">Employee Name</th>
-            <th scope="col" class="text-black fw-medium py-3">Absent Date</th>
-            <th scope="col" class="text-black fw-medium py-3">Nama Hari</th>
-            <th scope="col" class="text-black fw-medium py-3">Check In Time</th>
-            <th scope="col" class="text-black fw-medium py-3">Check Out Time</th>
-            <th scope="col" class="text-black fw-medium py-3 text-center">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="loading">
-            <td colspan="8" class="text-center py-4 text-muted">
-              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Loading data dari database...
-            </td>
-          </tr>
+      <select v-model="attendanceStatus" @change="fetchData">
+        <option value="All">Semua Status</option>
+        <option value="YES">Hadir</option>
+        <option value="NO">Tidak Hadir</option>
+      </select>
 
-          <tr v-else-if="attendanceList.length === 0">
-            <td colspan="8" class="text-center py-4 text-muted">Tidak ada data kehadiran hari ini.</td>
-          </tr>
-
-          <tr v-else v-for="(item, index) in attendanceList" :key="item.employee?.id || index">
-            <td class="fw-semibold text-muted">{{ String(index + 1).padStart(2, '0') }}</td>
-            <td>
-              <span class="fw-semibold text-black">{{ item.companyBranch?.name || '-' }}</span>
-            </td>
-            <td>{{ item.employee?.fullName || '-' }}</td>
-            <td>{{ item.absentDate || '-' }}</td>
-            <td>{{ getDayName(item.absentDate) }}</td>
-            <td>{{ item.checkInTime || '-' }}</td>
-            <td>{{ item.checkOutTime || '-' }}</td>
-            <td class="text-center">
-              <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle" title="Edit">
-                  <i class="flaticon-pen fs-14"></i>
-                </button>
-                <button class="btn btn-sm bg-danger-transparent text-danger border-0 p-2 lh-1 rounded-circle" title="Delete">
-                  <i class="flaticon-delete fs-14"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <select v-model="selectedBranchId" @change="fetchData">
+        <option value="">Semua Cabang PSG</option>
+        <option v-for="branch in branchList" :key="branch.id" :value="branch.id">
+          {{ branch.name }}
+        </option>
+      </select>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
-      <span class="text-muted fs-14">Showing 1 to {{ attendanceList.length }} of {{ attendanceList.length }} entries</span>
-      
-      <nav aria-label="Table navigation">
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item disabled">
-            <a class="page-link shadow-none" href="#" aria-label="Previous">
-              <span aria-hidden="true">&laquo;</span>
-            </a>
-          </li>
-          <li class="page-item active"><a class="page-link shadow-none" href="#">1</a></li>
-          <li class="page-item"><a class="page-link shadow-none" href="#">2</a></li>
-          <li class="page-item">
-            <a class="page-link shadow-none" href="#" aria-label="Next">
-              <span aria-hidden="true">&raquo;</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </div>
+    <AgGridVue
+      class="ag-theme-quartz"
+      style="height:400px;width:100%"
+      :columnDefs="columnDefs"
+      :rowData="rowData"
+      :defaultColDef="defaultColDef"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from "vue";
-import api from "../../utils/api"; 
+import { ref, defineComponent, onMounted } from "vue";
+import { AgGridVue } from "ag-grid-vue3";
+import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
+import api from "@/utils/api"; // Path langsung ke api.ts Anda
 
-// Interface yang disesuaikan persis dengan skema data JSON asli Swagger kamu
-interface Attendance {
-  absentId: number | null;
-  absentDate: string;
-  absentStatus: string;
-  checkInTime: string | null;
-  checkOutTime: string | null;
-  employee: {
-    id: string;
-    fullName: string;
-  };
-  companyBranch: {
-    id: string;
-    name: string;
-  };
-}
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 export default defineComponent({
-  name: "DailyAttendanceList",
-  setup() {
-    const attendanceList = ref<Attendance[]>([]);
-    const loading = ref<boolean>(true);
+  components: { AgGridVue },
 
-    // Fungsi pembantu untuk mengubah "2026-05-01" menjadi "Jumat"
-    const getDayName = (dateString: string): string => {
-      if (!dateString) return "-";
-      const date = new Date(dateString);
-      return date.toLocaleDateString("id-ID", { weekday: "long" });
+  setup() {
+    const rowData = ref<any[]>([]);
+    const branchList = ref<any[]>([]);
+    const selectedDate = ref(new Date().toISOString().split("T")[0]);
+    const attendanceStatus = ref("All");
+    const selectedBranchId = ref("");
+
+    const defaultColDef = { sortable: true, resizable: true };
+
+    const columnDefs = ref([
+      { field: "employee.fullName", headerName: "Name" },
+      { field: "employee.employeeEmploymentInfo.employeeNo", headerName: "Employee No" },
+      { field: "employee.employeeEmploymentInfo.companyBranch.name", headerName: "Branch" },
+      { field: "checkInTime", headerName: "Check In" },
+      { field: "checkOutTime", headerName: "Check Out" }
+    ]);
+
+    // 1. Fetch daftar cabang untuk dropdown
+    const fetchBranches = async () => {
+      try {
+        const res = await api.get("/api/v1/master/company/branch/list");
+        branchList.value = res.data?.data || [];
+      } catch (err) { console.error(err); }
     };
 
-    const fetchAttendanceData = async () => {
+    // 2. Fetch data langsung dari api.ts
+    const fetchData = async () => {
       try {
-        loading.value = true;
-        
-        const response = await api.get("/api/v1/attendance/employee/list", {
+        // Panggil endpoint langsung tanpa service
+        const res = await api.get("/api/v1/attendance/employee/list", {
           params: {
-            page: 0,
-            size: 10
+            datePeriod: selectedDate.value,
+            absentStatus: attendanceStatus.value,
+            companyBranchId: selectedBranchId.value || undefined // Jika kosong, API seharusnya kirim semua cabang
           }
-        }); 
+        });
+
+        // Sesuaikan dengan struktur response API Anda
+        const data = res.data?.data?.attendanceData || res.data?.data || [];
+        rowData.value = data;
         
-        // REVISI: Berdasarkan JSON-mu, data array langsung berada di dalam objek response.data.data
-        if (response.data && response.data.data) {
-          attendanceList.value = response.data.data;
-        } else {
-          attendanceList.value = [];
-        }
-        
-      } catch (error) {
-        console.error("Gagal melakukan sinkronisasi data database:", error);
-      } finally {
-        loading.value = false;
+        console.log("📦 Data Absensi Ter-load:", rowData.value);
+      } catch (err) {
+        console.error("❌ Fetch error:", err);
       }
     };
 
-    onMounted(() => {
-      fetchAttendanceData();
+    onMounted(async () => {
+      await fetchBranches();
+      await fetchData();
     });
 
-    return {
-      attendanceList,
-      loading,
-      fetchAttendanceData,
-      getDayName
+    return { 
+      rowData, columnDefs, defaultColDef, selectedDate, 
+      attendanceStatus, selectedBranchId, branchList, fetchData 
     };
   },
 });

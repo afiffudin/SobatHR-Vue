@@ -19,18 +19,15 @@
       </div>
 
       <form @submit.prevent="handleLogin">
-        
         <div class="mb-3">
           <label class="form-label text-black fw-medium fs-14">Email Address</label>
-          <div class="input-group">
-            <input 
-              type="email" 
-              v-model="emailAddress" 
-              class="form-control shadow-none" 
-              placeholder="example@mail.com" 
-              required
-            />
-          </div>
+          <input 
+            type="email" 
+            v-model="emailAddress" 
+            class="form-control shadow-none" 
+            placeholder="example@mail.com" 
+            required
+          />
         </div>
 
         <div class="mb-4">
@@ -52,9 +49,7 @@
           <span v-if="loading" class="spinner-border spinner-border-sm anonymity-spinner me-2" role="status" aria-hidden="true"></span>
           {{ loading ? 'Authenticating...' : 'Sign In' }}
         </button>
-
       </form>
-      
     </div>
   </div>
 </template>
@@ -78,49 +73,35 @@ export default defineComponent({
         loading.value = true;
         errorMessage.value = "";
 
-        const response = await api.post("/api/v1/auth/login", 
-          {
-            emailAddress: emailAddress.value,
-            password: password.value,
-          },
-          {
-            headers: {
-              "X-LOGIN-DEVICE": "web",
-              "X-DEVICE-ID": "browser-client", 
-              "X-DEVICE-NAME": window.navigator.userAgent 
-            }
+        const response = await api.post("/api/v1/auth/login", {
+          emailAddress: emailAddress.value,
+          password: password.value,
+        }, {
+          headers: {
+            "X-LOGIN-DEVICE": "web",
+            "X-DEVICE-ID": "browser-client", 
+            "X-DEVICE-NAME": window.navigator.userAgent 
           }
-        );
+        });
 
-        console.log("Respons Mentah Server Swagger:", response.data);
+        // Cek apakah ada data di dalam respon
+        if (response.data && response.data.data) {
+          const userData = response.data.data;
 
-        const isSuccess = response.data?.status === 200 || response.data?.message === "Success";
-
-        if (isSuccess) {
-          const dummyToken = "bypass-token-sobat-hr-development";
-          localStorage.setItem("token", dummyToken);
-          
-          // --- PERBAIKAN DI SINI ---
-          // Ambil payload data user dari server Swagger (misal: response.data.data atau response.data)
-          // Jika backend mengembalikan objek user, kita simpan string JSON-nya ke localStorage
-          const userData = response.data?.data || { emailAddress: emailAddress.value };
+          // SIMPAN DATA AUTHENTIKASI
+          // Kita menyimpan seluruh objek user agar bisa diambil jwtToken-nya
           localStorage.setItem("user", JSON.stringify(userData));
-          // -------------------------
+          // Kita simpan juga jwtToken-nya langsung agar mudah diakses interceptor
+          localStorage.setItem("token", userData.jwtToken);
 
+          alert("Login Berhasil! Selamat datang.");
           router.push("/");
         } else {
-          errorMessage.value = "Gagal mengautentikasi akun Anda. Respons status tidak valid.";
+          errorMessage.value = "Gagal mendapatkan data akun. Silakan coba kembali.";
         }
-
       } catch (error: any) {
         console.error("Proses login terkendala:", error);
-        if (error.response && error.response.data) {
-          errorMessage.value = error.response.data.message 
-                            || error.response.data.error 
-                            || "Gagal masuk, periksa kembali akun Anda.";
-        } else {
-          errorMessage.value = "Koneksi ke server gagal atau dimatikan. Silakan coba lagi nanti.";
-        }
+        errorMessage.value = error.response?.data?.message || "Koneksi ke server gagal. Silakan periksa kredensial Anda.";
       } finally {
         loading.value = false;
       }
@@ -138,27 +119,11 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.rounded-10 {
-  border-radius: 10px;
-}
-.fs-13 {
-  font-size: 13px;
-}
-.fs-14 {
-  font-size: 14px;
-}
-.fs-24 {
-  font-size: 24px;
-}
-.py-25 {
-  padding-top: 0.65rem;
-  padding-bottom: 0.65rem;
-}
-.bg-primary-transparent {
-  background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
-}
-.anonymity-spinner {
-  width: 1rem;
-  height: 1rem;
-}
+.rounded-10 { border-radius: 10px; }
+.fs-13 { font-size: 13px; }
+.fs-14 { font-size: 14px; }
+.fs-24 { font-size: 24px; }
+.py-25 { padding-top: 0.65rem; padding-bottom: 0.65rem; }
+.bg-primary-transparent { background-color: rgba(var(--bs-primary-rgb), 0.1) !important; }
+.anonymity-spinner { width: 1rem; height: 1rem; }
 </style>

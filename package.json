@@ -17,6 +17,8 @@
     "@popperjs/core": "^2.11.8",
     "@vue-leaflet/vue-leaflet": "^0.10.1",
     "@vueup/vue-quill": "^1.2.0",
+    "ag-grid-community": "^35.3.0",
+    "ag-grid-vue3": "^35.3.0",
     "apexcharts": "^5.13.0",
     "axios": "^1.16.1",
     "bootstrap": "^5.3.8",

@@ -159,6 +159,8 @@ export default defineComponent({
 
     // --- REVISI FUNGSI LOGOUT (Dengan Konfirmasi & Dialog Sukses) ---
     const handleLogout = () => {
+     
+      // window.location.href = "/login"; // atau router.push('/login')
       Swal.fire({
         title: "Apakah yakin ingin logout?",
         text: "Anda harus login kembali untuk mengakses dashboard.",

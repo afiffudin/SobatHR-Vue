@@ -7252,7 +7252,11 @@ textarea.form-control {
 }
 
 .table-responsive {
-  margin-bottom: 0;
+    display: block;
+    width: 100%;
+    overflow-x: auto; /* Ini kunci agar bisa digeser ke kanan */
+    -webkit-overflow-scrolling: touch; /* Biar lancar di HP/Tablet */
+    margin-bottom: 0;
 }
 
 .dark .welcome-box {
