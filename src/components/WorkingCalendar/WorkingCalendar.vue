@@ -1,108 +1,99 @@
 <template>
-  <div class="card bg-white border-0 rounded-10 mb-4 p-4">
-    <div class="d-sm-flex justify-content-between align-items-center mb-3">
-      <button class="btn btn-success text-white fw-medium px-3 btn-sm mt-2 mt-sm-0">
-        + Add New Working Calendar
-      </button>
-    </div>
-
-     <div class="search-box">
-        <input 
-            type="text" 
-            class="form-control form-control-sm" 
-            placeholder="Search Working Calendar..." 
-            style="width: 250px;"
-        />
-        <i class="flaticon-search-1"></i>
-        </div>
-    <!-- </div> -->
-    
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0 table-adlash" style="min-width: 1000px;">
-        <thead class="table-light">
-          <tr>
-            <th scope="col" class="text-black fw-medium py-3">No</th>
-            <th scope="col" class="text-black fw-medium py-3">Nama Shift</th>
-            <th scope="col" class="text-black fw-medium py-3">Working Date</th>
-            <th scope="col" class="text-black fw-medium py-3">Is Holiday</th>
-            <th scope="col" class="text-black fw-medium py-3">Created by</th>
-            <th scope="col" class="text-black fw-medium py-3">Created date</th>
-            <th scope="col" class="text-black fw-medium py-3 text-center">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="fw-semibold text-muted">01</td>
-            <td>
-              <span class="fw-semibold text-black">Work From Office</span>
-            </td>
-            <td>26-05-2026</td>
-            <td>TIDAK</td>
-            <td>Admin</td>
-            <td>26-05-2026</td>
-            <td class="text-center">
-              <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle" title="Edit">
-                  <i class="flaticon-pen fs-14"></i>
-                </button>
-                <button class="btn btn-sm bg-danger-transparent text-danger border-0 p-2 lh-1 rounded-circle" title="Delete">
-                  <i class="flaticon-delete fs-14"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-          
-          <tr>
-            <td class="fw-semibold text-muted">02</td>
-            <td>
-              <span class="fw-semibold text-black">Work From Home</span>
-            </td>
-            <td>27-05-2026</td>
-            <td>TIDAK</td>
-            <td>Admin</td>
-            <td>27-05-2026</td>
-            <td class="text-center">
-              <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle" title="Edit">
-                  <i class="flaticon-pen fs-14"></i>
-                </button>
-                <button class="btn btn-sm bg-danger-transparent text-danger border-0 p-2 lh-1 rounded-circle" title="Delete">
-                  <i class="flaticon-delete fs-14"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
-      <span class="text-muted fs-14">Showing 1 to 2 of 2 entries</span>
+  <div class="card mb-25 border-0 rounded-0 bg-white">
+    <div style="display:flex; gap:10px; padding:15px; align-items: center; flex-wrap: wrap;">
       
-      <nav aria-label="Table navigation">
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item disabled">
-            <a class="page-link shadow-none" href="#" aria-label="Previous">
-              <span aria-hidden="true">&laquo;</span>
-            </a>
-          </li>
-          <li class="page-item active"><a class="page-link shadow-none" href="#">1</a></li>
-          <li class="page-item"><a class="page-link shadow-none" href="#">2</a></li>
-          <li class="page-item">
-            <a class="page-link shadow-none" href="#" aria-label="Next">
-              <span aria-hidden="true">&raquo;</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
+      <input type="number" v-model="filterYear" @change="fetchData" class="form-control form-control-sm" style="width: 100px;" placeholder="Tahun" />
+      <input type="number" v-model="filterMonth" @change="fetchData" class="form-control form-control-sm" style="width: 80px;" placeholder="Bulan" />
+
+      <select v-model="selectedBranchId" @change="fetchData" class="form-select form-select-sm" style="flex: 1 1 200px; max-width: 300px;">
+        <option value="">Semua Cabang</option>
+        <option v-for="branch in branchList" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
+      </select>
+
+      <div v-if="loading" class="spinner-border spinner-border-sm text-success"></div>
     </div>
+
+    <AgGridVue
+      class="ag-theme-quartz"
+      style="height: 500px; width: 100%"
+      :columnDefs="columnDefs"
+      :rowData="uniqueRowData" 
+      :defaultColDef="defaultColDef"
+      :pagination="true"
+      :paginationPageSize="pageSize"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { ref, defineComponent, onBeforeMount, computed } from "vue";
+import { AgGridVue } from "ag-grid-vue3";
+import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
+import api from "@/utils/api";
+
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 export default defineComponent({
-  name: "WorkingCalendarList",
+  components: { AgGridVue },
+  setup() {
+    const rowData = ref<any[]>([]);
+    const branchList = ref<any[]>([]);
+    const loading = ref(false);
+    const filterYear = ref(new Date().getFullYear());
+    const filterMonth = ref(new Date().getMonth() + 1);
+    const selectedBranchId = ref("");
+    const pageSize = ref(10);
+
+    const columnDefs = ref([
+      { headerName: "No", valueGetter: "node.rowIndex + 1", width: 70 },
+      { headerName: "Shift", field: "shift.name" },
+      { headerName: "Date", field: "workingDate" },
+      { headerName: "Is Holiday", field: "holiday", cellRenderer: (p: any) => p.value ? "YA" : "TIDAK" },
+      { headerName: "Branch", field: "shift.companyBranch.name" }
+    ]);
+
+    const defaultColDef = { sortable: true, resizable: true, flex: 1 };
+
+    // Mencegah duplikasi data secara client-side
+    const uniqueRowData = computed(() => {
+      const map = new Map();
+      rowData.value.forEach(item => map.set(item.id, item));
+      return Array.from(map.values());
+    });
+
+    const fetchData = async () => {
+      loading.value = true;
+      try {
+        // REVISI: Langsung panggil endpoint kalender dengan filter lengkap
+        // Pastikan endpoint ini di backend sudah menangani filter branch/year/month
+        const res = await api.get("/api/v1/master/shift/calendar/list", {
+          params: {
+            year: filterYear.value,
+            month: filterMonth.value,
+            companyBranchId: selectedBranchId.value || undefined
+          }
+        });
+        rowData.value = res.data?.data || [];
+      } catch (err) {
+        console.error("Fetch error:", err);
+        rowData.value = [];
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    onBeforeMount(async () => {
+      try {
+        const res = await api.get("/api/v1/master/company/branch/list");
+        branchList.value = res.data?.data || [];
+      } catch (e) { console.error(e); }
+      await fetchData();
+    });
+
+    return { 
+      rowData, uniqueRowData, columnDefs, defaultColDef, filterYear, filterMonth,
+      selectedBranchId, branchList, fetchData, pageSize, loading 
+    };
+  },
 });
 </script>

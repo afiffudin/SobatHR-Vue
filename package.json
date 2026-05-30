@@ -23,6 +23,8 @@
     "axios": "^1.16.1",
     "bootstrap": "^5.3.8",
     "bootstrap-vue-next": "^0.45.4",
+    "docx": "^9.7.1",
+    "file-saver": "^2.0.5",
     "flatpickr": "^4.6.13",
     "leaflet": "^1.9.4",
     "prismjs": "^1.30.0",
@@ -35,10 +37,12 @@
     "vue3-apexcharts": "^1.11.1",
     "vue3-circle-progress": "^1.0.7",
     "vue3-prism": "^0.1.4",
-    "vue3-tree": "^0.11.5"
+    "vue3-tree": "^0.11.5",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^24.12.2",
     "@types/prismjs": "^1.26.6",
     "@vitejs/plugin-vue": "^6.0.6",
