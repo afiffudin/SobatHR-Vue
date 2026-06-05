@@ -15,6 +15,7 @@ import DailyAttendancePage from "@/pages/DailyAttendance/DailyAttendancePage.vue
 import AttendanceSummaryPage from "@/pages/AttendanceSummary/AttendanceSummaryPage.vue";
 import ShiftTypePage from "@/pages/ShiftType/ShiftTypePage.vue";
 import DashboardPage from "@/pages/Dashboard/DashboardUtamaPage.vue";
+import ProfilePage from "@/pages/ProfilPage/ProfilePage.vue";
 import LoginView from "../components/Login/Login.vue";
 
 const routes = [
@@ -28,6 +29,12 @@ const routes = [
     path: "/",
     name: "DashboardPage",
     component: DashboardPage,
+    meta: { requiresAuth: true } // Wajib login
+  },
+  {
+    path: "/profile",
+    name: "ProfilPage",
+    component: ProfilePage,
     meta: { requiresAuth: true } // Wajib login
   },
   {

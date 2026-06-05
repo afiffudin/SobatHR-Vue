@@ -1,9 +1,9 @@
 <template>
   <div class="card bg-white border-0 rounded-10 mb-4 p-4">
     <div class="d-sm-flex justify-content-between align-items-center mb-3">
-      <button class="btn btn-success text-white fw-medium px-3 btn-sm mt-2 mt-sm-0" @click="addEmployee">
+      <!-- <button class="btn btn-success text-white fw-medium px-3 btn-sm mt-2 mt-sm-0" @click="addEmployee">
         + Add New Employee
-      </button>
+      </button> -->
       <div v-if="loading" class="spinner-border text-success" style="width: 1.5rem; height: 1.5rem;"></div>
     </div>
 

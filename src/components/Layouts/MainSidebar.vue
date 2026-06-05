@@ -166,7 +166,7 @@
                 </li>
                 </ul>
                 </div>
-            <div class="accordion-body">
+            <!-- <div class="accordion-body">
               <ul class="sidebar-sub-menu ps-0 mb-0 list-unstyled">
                 <li class="sidebar-sub-menu-item">
                   <router-link to="/attendance-summary" class="sidebar-sub-menu-link">
@@ -174,7 +174,7 @@
                   </router-link>
                 </li>
                 </ul>
-                </div>
+                </div> -->
                 </div>
                 </li>
         <!-- <li

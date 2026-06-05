@@ -15,9 +15,9 @@
         placeholder="Search Shift..." 
       />
 
-      <div style="display: flex; gap: 8px; margin-left: auto; align-items: center; flex-shrink: 0;">
+      <!-- <div style="display: flex; gap: 8px; margin-left: auto; align-items: center; flex-shrink: 0;">
         <button class="btn btn-success btn-sm" style="font-size: 12px; padding: 4px 10px;">+ Add New Shift</button>
-      </div>
+      </div> -->
     </div>
 
     <AgGridVue

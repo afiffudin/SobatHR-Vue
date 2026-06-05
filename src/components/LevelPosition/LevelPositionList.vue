@@ -7,9 +7,9 @@
       </select>
 
       <div style="display: flex; gap: 8px; margin-left: auto; align-items: center; flex-shrink: 0;">
-        <button class="btn btn-success btn-sm" style="font-size: 12px; padding: 4px 10px;">
+        <!-- <button class="btn btn-success btn-sm" style="font-size: 12px; padding: 4px 10px;">
           + Add New Level
-        </button>
+        </button> -->
         <div v-if="loading" class="spinner-border" style="width: 16px; height: 16px; color: #28a745; margin-left: 5px;"></div>
       </div>
     </div>

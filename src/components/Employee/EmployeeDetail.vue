@@ -24,7 +24,7 @@
             </div>
           </div>
 
-          <div class="d-flex gap-2">
+          <!-- <div class="d-flex gap-2">
             <button v-if="isEditMode" class="btn btn-sm btn-outline-secondary px-3" @click="cancelEdit">Batal</button>
             <button v-else class="btn btn-sm btn-outline-primary px-3" @click="back">Batal<i class="bi bi-arrow-left"></i></button>
 
@@ -32,9 +32,9 @@
               :class="isEditMode ? 'btn-success' : 'btn-primary'"
               @click="isEditMode = !isEditMode" ></button>
               <i class="bi" :class="isEditMode ? 'bi-check-lg' : 'bi-pencil-square'"></i>
-              <span class="ms-2 fw-bold">{{ isEditMode ? 'Simpan Keseluruhan' : 'Update Data' }}</span>
+              <span class="ms-2 fw-bold">{{ isEditMode ? 'Simpan Keseluruhan' : 'Update Data' }}</span> -->
             <!-- </button> -->
-          </div>
+          <!-- </div> -->
         </div>
       </div>
     </div>

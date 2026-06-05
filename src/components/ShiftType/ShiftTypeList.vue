@@ -15,10 +15,10 @@
         placeholder="Search Shift Type..." 
       />
 
-      <div style="display: flex; gap: 8px; margin-left: auto; align-items: center; flex-shrink: 0;">
+      <!-- <div style="display: flex; gap: 8px; margin-left: auto; align-items: center; flex-shrink: 0;">
         <button class="btn btn-success btn-sm" style="font-size: 12px; padding: 4px 10px;">+ Add New Shift Type</button>
         <div v-if="loading" class="spinner-border spinner-border-sm" style="color: #28a745; margin-left: 5px;"></div>
-      </div>
+      </div> -->
     </div>
 
     <AgGridVue
