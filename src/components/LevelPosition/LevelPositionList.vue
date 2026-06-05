@@ -1,7 +1,6 @@
 <template>
   <div class="card mb-25 border-0 rounded-0 bg-white">
     <div style="display:flex; gap:10px; padding:15px; align-items: center; flex-wrap: wrap;">
-      
       <select v-model="selectedBranchId" @change="fetchData" class="form-select form-select-sm" style="flex: 1 1 200px; max-width: 300px;">
         <option value="">Semua Cabang</option>
         <option v-for="branch in branchList" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
@@ -44,13 +43,48 @@ export default defineComponent({
     const selectedBranchId = ref("");
     const pageSize = ref(10);
 
+    const editLevel = (data: any) => {
+      console.log("Edit Level:", data);
+      alert("Arahkan ke form edit untuk ID: " + data.id);
+    };
+
+    const deleteLevel = async (data: any) => {
+      if (confirm(`Yakin ingin menghapus level ${data.name}?`)) {
+        try {
+          await api.delete(`/api/v1/master/levelPosition/delete/${data.id}`);
+          fetchData();
+        } catch (err) {
+          alert("Gagal menghapus data");
+        }
+      }
+    };
+
     const columnDefs = ref([
       { headerName: "No", valueGetter: "node.rowIndex + 1", width: 70 },
       { field: "code", headerName: "Code", sortable: true },
       { field: "name", headerName: "Name", sortable: true },
-      { field: "createdBy", headerName: "Created By" },
-      { field: "createdDate", headerName: "Created Date" },
-      { field: "version", headerName: "Version" }
+      {
+        headerName: "Action",
+        width: 120,
+        cellRenderer: (params: any) => {
+          const container = document.createElement('div');
+          container.className = 'd-flex justify-content-center gap-2';
+          
+          container.innerHTML = `
+            <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle" title="Edit">
+              <i class="flaticon-pen fs-14"></i>
+            </button>
+            <button class="btn btn-sm bg-danger-transparent text-danger border-0 p-2 lh-1 rounded-circle" title="Delete">
+              <i class="flaticon-delete fs-14"></i>
+            </button>
+          `;
+
+          container.querySelector('.bg-primary-transparent')?.addEventListener('click', () => editLevel(params.data));
+          container.querySelector('.bg-danger-transparent')?.addEventListener('click', () => deleteLevel(params.data));
+
+          return container;
+        }
+      }
     ]);
 
     const defaultColDef = { sortable: true, resizable: true, flex: 1 };
@@ -59,9 +93,7 @@ export default defineComponent({
       loading.value = true;
       try {
         const res = await api.get("/api/v1/master/levelPosition/list", {
-          params: { 
-            companyBranchId: selectedBranchId.value || undefined 
-          }
+          params: { companyBranchId: selectedBranchId.value || undefined }
         });
         rowData.value = res.data?.data || [];
       } catch (err) {
@@ -73,22 +105,11 @@ export default defineComponent({
     };
 
     onBeforeMount(async () => {
-      // Load branch list untuk dropdown
       await api.get("/api/v1/master/company/branch/list").then(res => branchList.value = res.data?.data || []);
-      // Load data utama
       await fetchData();
     });
 
-    return { 
-      rowData, 
-      columnDefs, 
-      defaultColDef, 
-      selectedBranchId, 
-      branchList, 
-      fetchData, 
-      pageSize, 
-      loading 
-    };
+    return { rowData, columnDefs, defaultColDef, selectedBranchId, branchList, fetchData, pageSize, loading };
   },
 });
 </script>

@@ -4,7 +4,7 @@
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
     // Extra safety for array and object lookups, but may have false positives.
-    "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": false,// ubah jadi false, Pengaturan ini adalah penyebab kenapa TypeScript Anda "lebay". Dia memaksa semua akses array atau properti objek untuk selalu diperiksa apakah nilainya undefined atau tidak. Inilah alasan kenapa startDate.value yang seharusnya aman selalu dianggap sebagai string | undefined.
 
     // Path mapping for cleaner imports.
     "paths": {

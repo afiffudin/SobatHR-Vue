@@ -1,106 +1,66 @@
 <template>
   <div class="card bg-white border-0 rounded-10 mb-4 p-4">
     <div class="d-sm-flex justify-content-between align-items-center mb-3">
-      <button class="btn btn-success text-white fw-medium px-3 btn-sm mt-2 mt-sm-0">
+      <button class="btn btn-success text-white fw-medium px-3 btn-sm mt-2 mt-sm-0" @click="addEmployee">
         + Add New Employee
       </button>
+      <div v-if="loading" class="spinner-border text-success" style="width: 1.5rem; height: 1.5rem;"></div>
     </div>
 
-     <div class="search-box">
-        <input 
-            type="text" 
-            class="form-control form-control-sm" 
-            placeholder="Search Employee..." 
-            style="width: 250px;"
-        />
-        <i class="flaticon-search-1"></i>
-        </div>
-    <!-- </div> -->
-    
+    <div class="search-box mb-3">
+      <input v-model="search" type="text" class="form-control form-control-sm" placeholder="Cari nama atau ID..." style="width: 250px" />
+    </div>
+
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0 table-adlash" style="min-width: 1000px;">
+      <table class="table table-hover align-middle mb-0 table-adlash" style="min-width: 1000px">
         <thead class="table-light">
           <tr>
-            <th scope="col" class="text-black fw-medium py-3">No</th>
-            <th scope="col" class="text-black fw-medium py-3">Nama Karyawan</th>
-            <th scope="col" class="text-black fw-medium py-3">Id Karyawan</th>
-            <th scope="col" class="text-black fw-medium py-3">Departmen</th>
-            <th scope="col" class="text-black fw-medium py-3">Posisi</th>
-            <th scope="col" class="text-black fw-medium py-3">Status</th>
-            <th scope="col" class="text-black fw-medium py-3 text-center">Action</th>
+            <th>No</th>
+            <th>Nama Karyawan</th>
+            <th>ID Karyawan</th>
+            <th>Cabang</th>
+            <th>Departemen</th>
+            <th>Posisi</th>
+            <th>Status</th>
+            <th class="text-center">Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="fw-semibold text-muted">01</td>
+          <tr v-for="(item, index) in paginatedEmployees" :key="item.id">
+            <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
+            <td><span class="fw-semibold text-black">{{ item.fullName }}</span></td>
+            <td>{{ item.employeeEmploymentInfo?.employeeNo || "-" }}</td>
+            <td>{{ item.employeeEmploymentInfo?.companyBranch?.name || "-" }}</td>
+            <td>{{ item.employeeEmploymentInfo?.department?.name || "-" }}</td>
+            <td>{{ item.employeeEmploymentInfo?.position?.name || "-" }}</td>
             <td>
-              <span class="fw-semibold text-black">Andi</span>
-            </td>
-            <td>emp-0001</td>
-            <td>Administrasi</td>
-            <td>Admin</td>
-            <td>
-              <span class="badge bg-success-transparent text-success border border-success-20 px-2.5 py-1 rounded-pill">
-                Aktif
-              </span>
+              <span v-if="!item.employeeEmploymentInfo?.resignDate" class="badge bg-success-transparent text-success border px-2 py-1 rounded-pill">Aktif</span>
+              <span v-else class="badge bg-danger-transparent text-danger border px-2 py-1 rounded-pill">Non Aktif</span>
             </td>
             <td class="text-center">
               <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle" title="Edit">
+                <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle" title="Edit" @click="editEmployee(item.id)">
                   <i class="flaticon-pen fs-14"></i>
-                </button>
-                <button class="btn btn-sm bg-danger-transparent text-danger border-0 p-2 lh-1 rounded-circle" title="Delete">
-                  <i class="flaticon-delete fs-14"></i>
                 </button>
               </div>
             </td>
           </tr>
-          
-          <tr>
-            <td class="fw-semibold text-muted">02</td>
-            <td>
-              <span class="fw-semibold text-black">Jamal</span>
-            </td>
-            <td>emp-0002</td>
-            <td>Administrasi</td>
-            <td>Admin HRD</td>
-            <td>
-              <span class="badge bg-success-transparent text-success border border-success-20 px-2.5 py-1 rounded-pill">
-                Aktif
-              </span>
-            </td>
-            <td class="text-center">
-              <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle" title="Edit">
-                  <i class="flaticon-pen fs-14"></i>
-                </button>
-                <button class="btn btn-sm bg-danger-transparent text-danger border-0 p-2 lh-1 rounded-circle" title="Delete">
-                  <i class="flaticon-delete fs-14"></i>
-                </button>
-              </div>
-            </td>
+          <tr v-if="paginatedEmployees.length === 0 && !loading">
+            <td colspan="8" class="text-center py-4">Data tidak ditemukan</td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
-      <span class="text-muted fs-14">Showing 1 to 2 of 2 entries</span>
-      
-      <nav aria-label="Table navigation">
+      <span class="text-muted fs-14">Showing {{ startRecord }} to {{ endRecord }} of {{ filteredEmployees.length }} entries</span>
+      <nav>
         <ul class="pagination pagination-sm mb-0">
-          <li class="page-item disabled">
-            <a class="page-link shadow-none" href="#" aria-label="Previous">
-              <span aria-hidden="true">&laquo;</span>
-            </a>
+          <li class="page-item" :class="{ disabled: currentPage === 1 }"><button class="page-link" @click="currentPage--">&laquo;</button></li>
+          <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+            <button class="page-link" @click="currentPage = page">{{ page }}</button>
           </li>
-          <li class="page-item active"><a class="page-link shadow-none" href="#">1</a></li>
-          <li class="page-item"><a class="page-link shadow-none" href="#">2</a></li>
-          <li class="page-item">
-            <a class="page-link shadow-none" href="#" aria-label="Next">
-              <span aria-hidden="true">&raquo;</span>
-            </a>
-          </li>
+          <li class="page-item" :class="{ disabled: currentPage === totalPages || totalPages === 0 }"><button class="page-link" @click="currentPage++">&raquo;</button></li>
         </ul>
       </nav>
     </div>
@@ -108,9 +68,73 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { ref, computed, defineComponent, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import api from "@/utils/api";
 
 export default defineComponent({
   name: "EmployeeList",
+  setup() {
+    const router = useRouter();
+    const loading = ref(false);
+    const employees = ref<any[]>([]);
+    const search = ref("");
+    const currentPage = ref(1);
+    const pageSize = 10;
+
+    const fetchEmployees = async () => {
+      loading.value = true;
+      try {
+        const res = await api.get("/api/v1/master/employee/list");
+        employees.value = res.data?.data || [];
+      } catch (err) {
+        console.error("Error fetch employee:", err);
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const filteredEmployees = computed(() => {
+      if (!search.value) return employees.value;
+      const q = search.value.toLowerCase();
+      return employees.value.filter((item: any) => 
+        item.fullName?.toLowerCase().includes(q) || 
+        item.employeeEmploymentInfo?.employeeNo?.toLowerCase().includes(q)
+      );
+    });
+
+    const totalPages = computed(() => Math.ceil(filteredEmployees.value.length / pageSize));
+
+    const paginatedEmployees = computed(() => {
+      const start = (currentPage.value - 1) * pageSize;
+      return filteredEmployees.value.slice(start, start + pageSize);
+    });
+
+    const startRecord = computed(() => (filteredEmployees.value.length === 0 ? 0 : (currentPage.value - 1) * pageSize + 1));
+    const endRecord = computed(() => Math.min(currentPage.value * pageSize, filteredEmployees.value.length));
+
+    const addEmployee = () => router.push("/employee/add");
+
+    // Navigasi menggunakan URL parameter
+    const editEmployee = (employeeId: string) => {
+      router.push(`/employee/edit/${employeeId}`);
+    };
+
+    onMounted(fetchEmployees);
+
+    return {
+      loading, employees, search, currentPage, pageSize,
+      filteredEmployees, paginatedEmployees, totalPages,
+      startRecord, endRecord, addEmployee, editEmployee
+    };
+  },
 });
 </script>
+
+<style scoped>
+.search-box { position: relative; }
+.table-adlash th { white-space: nowrap; }
+.bg-success-transparent { background-color: rgba(25, 135, 84, 0.1); }
+.bg-danger-transparent { background-color: rgba(220, 53, 69, 0.1); }
+.bg-primary-transparent { background-color: rgba(13, 110, 253, 0.1); }
+</style>

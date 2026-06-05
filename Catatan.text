@@ -1,0 +1,11 @@
+Daily Task 02-06-2026:
+1. Tampilan data mst employee, dan icon delete di hapus(onprogress)
+2. hilangkan di table list= ag-icon ag-icon-filter pada semua
+3. pada menu Attendance summary aja yang ditampilkan, hasil summary nya karyawan per tanggal 1-30, dari filternya  misalnya.
+4. pada menu daily attendance munculkan detail dan saat di klik detail muncul lokasi absen, foto, dll. 
+
+
+
+Catatan API Swagger :
+di api.dev -> employee list muncul
+selain di api dev -> ada error di api swagger nya

@@ -11,7 +11,7 @@
         to="/"
         class="d-flex align-items-center text-white text-decoration-none"
       >
-        <img src="../../assets/images/Sobathr-log.png" alt="logo-icon" />
+        <img src="../../assets/images/Sobathr logo white.png" alt="logo-icon" />
         <span class="fw-bold ms-10"></span>
       </router-link>
       <div class="border-bottom"></div>
@@ -94,6 +94,14 @@
                     class="sidebar-sub-menu-link"
                   >
                     Shift
+                  </router-link>
+                </li>
+                <li class="sidebar-sub-menu-item">
+                  <router-link
+                    to="/master-shift-type-list"
+                    class="sidebar-sub-menu-link"
+                  >
+                    Shift Type
                   </router-link>
                 </li>
                 <li class="sidebar-sub-menu-item">

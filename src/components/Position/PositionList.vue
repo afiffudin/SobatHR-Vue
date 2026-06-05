@@ -1,105 +1,124 @@
 <template>
-  <div class="card bg-white border-0 rounded-10 mb-4 p-4">
-    <div class="d-sm-flex justify-content-between align-items-center mb-3">
-      <button class="btn btn-success text-white fw-medium px-3 btn-sm mt-2 mt-sm-0">
-        + Add New Position
-      </button>
+  <div class="card mb-25 border-0 rounded-0 bg-white">
+    <div style="display:flex; gap:10px; padding:15px; align-items: center; flex-wrap: wrap;">
+      <select v-model="selectedBranchId" @change="fetchData" class="form-select form-select-sm" style="flex: 1 1 200px; max-width: 300px;">
+        <option value="">Semua Cabang</option>
+        <option v-for="branch in branchList" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
+      </select>
+
+      <input 
+        type="text" 
+        v-model="quickFilterText" 
+        @input="onFilterTextBoxChanged"
+        class="form-control form-control-sm" 
+        style="width: 250px;" 
+        placeholder="Cari posisi..." 
+      />
+
+      <div style="display: flex; gap: 8px; margin-left: auto; align-items: center; flex-shrink: 0;">
+        <button class="btn btn-success btn-sm" style="font-size: 12px; padding: 4px 10px;">
+          + Add New Position
+        </button>
+        <div v-if="loading" class="spinner-border spinner-border-sm" style="color: #28a745; margin-left: 5px;"></div>
+      </div>
     </div>
 
-     <div class="search-box">
-        <input 
-            type="text" 
-            class="form-control form-control-sm" 
-            placeholder="Search Shift..." 
-            style="width: 250px;"
-        />
-        <i class="flaticon-search-1"></i>
-        </div>
-    <!-- </div> -->
-    
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0 table-adlash" style="min-width: 1000px;">
-        <thead class="table-light">
-          <tr>
-            <th scope="col" class="text-black fw-medium py-3">No</th>
-            <th scope="col" class="text-black fw-medium py-3">Nama Posisi</th>
-            <th scope="col" class="text-black fw-medium py-3">Deskripsi</th>
-            <th scope="col" class="text-black fw-medium py-3">Created AT</th>
-            <th scope="col" class="text-black fw-medium py-3">Updated AT</th>
-            <th scope="col" class="text-black fw-medium py-3 text-center">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="fw-semibold text-muted">01</td>
-            <td>
-              <span class="fw-semibold text-black">Backend Developer</span>
-            </td>
-            <td>Springboot Backend Developer</td>
-            <td>18:00:00</td>
-            <td>18:00:00</td>
-            <td class="text-center">
-              <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle" title="Edit">
-                  <i class="flaticon-pen fs-14"></i>
-                </button>
-                <button class="btn btn-sm bg-danger-transparent text-danger border-0 p-2 lh-1 rounded-circle" title="Delete">
-                  <i class="flaticon-delete fs-14"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-          
-          <tr>
-            <td class="fw-semibold text-muted">02</td>
-            <td>
-              <span class="fw-semibold text-black">Abs Tulodong</span>
-            </td>
-            <td>Karyawan Abs</td>
-            <td>18:00:00</td>
-            <td>20:00:00</td>
-            <td class="text-center">
-              <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle" title="Edit">
-                  <i class="flaticon-pen fs-14"></i>
-                </button>
-                <button class="btn btn-sm bg-danger-transparent text-danger border-0 p-2 lh-1 rounded-circle" title="Delete">
-                  <i class="flaticon-delete fs-14"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
-      <span class="text-muted fs-14">Showing 1 to 2 of 2 entries</span>
-      
-      <nav aria-label="Table navigation">
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item disabled">
-            <a class="page-link shadow-none" href="#" aria-label="Previous">
-              <span aria-hidden="true">&laquo;</span>
-            </a>
-          </li>
-          <li class="page-item active"><a class="page-link shadow-none" href="#">1</a></li>
-          <li class="page-item"><a class="page-link shadow-none" href="#">2</a></li>
-          <li class="page-item">
-            <a class="page-link shadow-none" href="#" aria-label="Next">
-              <span aria-hidden="true">&raquo;</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </div>
+    <AgGridVue
+      class="ag-theme-quartz"
+      style="height: 500px; width: 100%"
+      :columnDefs="columnDefs"
+      :rowData="rowData"
+      :defaultColDef="defaultColDef"
+      :pagination="true"
+      :paginationPageSize="pageSize"
+      :quickFilterText="quickFilterText" 
+      @grid-ready="onGridReady"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { ref, defineComponent, onBeforeMount } from "vue";
+import { AgGridVue } from "ag-grid-vue3";
+import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
+import api from "@/utils/api";
+
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 export default defineComponent({
-  name: "PositionList",
+  components: { AgGridVue },
+  setup() {
+    const rowData = ref<any[]>([]);
+    const branchList = ref<any[]>([]);
+    const loading = ref(false);
+    const selectedBranchId = ref("");
+    const quickFilterText = ref(""); // Tambahkan ini
+    const gridApi = ref<any>(null); // Reference untuk AgGrid API
+    const pageSize = 10;
+
+    const onGridReady = (params: any) => {
+      gridApi.value = params.api;
+    };
+
+    const onFilterTextBoxChanged = () => {
+      gridApi.value.setQuickFilter(quickFilterText.value);
+    };
+
+    // ... (Fungsi editPosition, deletePosition, columnDefs tetap sama)
+
+    const columnDefs = ref([
+      { headerName: "No", valueGetter: "node.rowIndex + 1", width: 70 },
+      { field: "name", headerName: "Nama Posisi", sortable: true },
+      { field: "description", headerName: "Deskripsi", sortable: true },
+      { 
+        headerName: "Cabang", 
+        field: "companyBranch.name",
+        valueGetter: (params: any) => params.data.companyBranch?.name || '-' 
+      },
+      { 
+        headerName: "Action",
+        width: 120,
+        cellRenderer: (params: any) => {
+          const container = document.createElement('div');
+          container.className = 'd-flex justify-content-center gap-2';
+          
+          container.innerHTML = `
+            <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle">
+              <i class="flaticon-pen fs-14"></i>
+            </button>
+            <button class="btn btn-sm bg-danger-transparent text-danger border-0 p-2 lh-1 rounded-circle">
+              <i class="flaticon-delete fs-14"></i>
+            </button>
+          `;
+          // Tambahkan listener kembali jika diperlukan...
+          return container;
+        }
+      }
+    ]);
+
+    const defaultColDef = { sortable: true, resizable: true, flex: 1 };
+
+    const fetchData = async () => {
+      loading.value = true;
+      try {
+        const res = await api.get("/api/v1/master/position/list", {
+          params: { companyBranchId: selectedBranchId.value || undefined }
+        });
+        rowData.value = res.data?.data || [];
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    onBeforeMount(async () => {
+      await api.get("/api/v1/master/company/branch/list").then(res => branchList.value = res.data?.data || []);
+      await fetchData();
+    });
+
+    return { 
+      rowData, columnDefs, defaultColDef, selectedBranchId, branchList, 
+      fetchData, pageSize, loading, quickFilterText, onGridReady, onFilterTextBoxChanged 
+    };
+  },
 });
 </script>

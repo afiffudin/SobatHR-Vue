@@ -5,12 +5,16 @@ import EcommercePage from "../pages/Dashboard/EcommercePage.vue";
 import FormHrdPage from "../pages/Hrd/FormHrdPage.vue";
 import BranchPage from "@/pages/CompanyBranch/BranchPage.vue";
 import EmployeePage from "@/pages/Employee/EmployeePage.vue";
+import EmployeeDetailPage from "@/pages/Employee/EmployeeDetailPage.vue";
 import ShiftPage from "@/pages/Shift/ShiftPage.vue";
 import PositionPage from "@/pages/Position/PositionPage.vue";
 import LevelPositionPage from "@/pages/LevelPosition/LevelPositionPage.vue";
 import WorkingCalendar from "@/pages/WorkingCalendar/WorkingCalendar.vue";
 import WorkingSchedule from "@/pages/WorkingSchedule/WorkingSchedule.vue";
 import DailyAttendancePage from "@/pages/DailyAttendance/DailyAttendancePage.vue";
+import AttendanceSummaryPage from "@/pages/AttendanceSummary/AttendanceSummaryPage.vue";
+import ShiftTypePage from "@/pages/ShiftType/ShiftTypePage.vue";
+import DashboardPage from "@/pages/Dashboard/DashboardUtamaPage.vue";
 import LoginView from "../components/Login/Login.vue";
 
 const routes = [
@@ -22,8 +26,8 @@ const routes = [
   },
   {
     path: "/",
-    name: "EcommercePage",
-    component: EcommercePage,
+    name: "DashboardPage",
+    component: DashboardPage,
     meta: { requiresAuth: true } // Wajib login
   },
   {
@@ -45,9 +49,21 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: "/employee/edit/:id",
+    name: "EmployeeDetailPage",
+    component: EmployeeDetailPage,
+    meta: { requiresAuth: true }
+  },
+  {
     path: "/master-shift-list",
     name: "ShiftPage",
     component: ShiftPage,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/master-shift-type-list",
+    name: "ShiftTypePage",
+    component: ShiftTypePage,
     meta: { requiresAuth: true }
   },
   {
@@ -78,6 +94,12 @@ const routes = [
     path: "/daily-attendance",
     name: "DailyAttendancePage",
     component: DailyAttendancePage,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/attendance-summary",
+    name: "AttendanceSummaryPage",
+    component: AttendanceSummaryPage,
     meta: { requiresAuth: true }
   },
   {

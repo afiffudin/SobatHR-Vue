@@ -1,108 +1,127 @@
 <template>
   <div class="card bg-white border-0 rounded-10 mb-4 p-4">
-    <div class="d-sm-flex justify-content-between align-items-center mb-3">
-      <button class="btn btn-success text-white fw-medium px-3 btn-sm mt-2 mt-sm-0">
-        + Add New Working Schedule
-      </button>
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <label class="form-label small">Pilih Cabang</label>
+        <select v-model="filter.branchId" class="form-select form-select-sm" @change="fetchData">
+          <option v-for="b in branchOptions" :key="b.id" :value="b.id">{{ b.name }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Bulan</label>
+        <select v-model="filter.month" class="form-select form-select-sm" @change="fetchData">
+          <option v-for="m in 12" :key="m" :value="m">{{ new Date(0, m - 1).toLocaleString('id-ID', { month: 'long' }) }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Tahun</label>
+        <select v-model="filter.year" class="form-select form-select-sm" @change="fetchData">
+          <option v-for="y in 5" :key="y" :value="2024 + y">{{ 2024 + y }}</option>
+        </select>
+      </div>
     </div>
 
-     <div class="search-box">
-        <input 
-            type="text" 
-            class="form-control form-control-sm" 
-            placeholder="Search Working Calendar..." 
-            style="width: 250px;"
-        />
-        <i class="flaticon-search-1"></i>
-        </div>
-    <!-- </div> -->
-    
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0 table-adlash" style="min-width: 1000px;">
-        <thead class="table-light">
-          <tr>
-            <th scope="col" class="text-black fw-medium py-3">No</th>
-            <th scope="col" class="text-black fw-medium py-3">Working Calendar Name</th>
-            <th scope="col" class="text-black fw-medium py-3">Employee Name</th>
-            <th scope="col" class="text-black fw-medium py-3">Shift Type Name</th>
-            <th scope="col" class="text-black fw-medium py-3">Jam Masuk</th>
-            <th scope="col" class="text-black fw-medium py-3">Jam Keluar</th>
-            <th scope="col" class="text-black fw-medium py-3 text-center">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="fw-semibold text-muted">01</td>
-            <td>
-              <span class="fw-semibold text-black">Senin, 26-05-2026</span>
-            </td>
-            <td>Adel</td>
-            <td>OF4 - p bsb jaya</td>
-            <td>14:00:00</td>
-            <td>22:00:00</td>
-            <td class="text-center">
-              <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle" title="Edit">
-                  <i class="flaticon-pen fs-14"></i>
-                </button>
-                <button class="btn btn-sm bg-danger-transparent text-danger border-0 p-2 lh-1 rounded-circle" title="Delete">
-                  <i class="flaticon-delete fs-14"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-          
-          <tr>
-            <td class="fw-semibold text-muted">02</td>
-            <td>
-              <span class="fw-semibold text-black">Minggu, 25-05-2026</span>
-            </td>
-            <td>Rico</td>
-            <td>OF4 - p bsb jaya</td>
-            <td>14:00:00</td>
-            <td>22:00:00</td>
-            <td class="text-center">
-              <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-sm bg-primary-transparent text-primary border-0 p-2 lh-1 rounded-circle" title="Edit">
-                  <i class="flaticon-pen fs-14"></i>
-                </button>
-                <button class="btn btn-sm bg-danger-transparent text-danger border-0 p-2 lh-1 rounded-circle" title="Delete">
-                  <i class="flaticon-delete fs-14"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
-      <span class="text-muted fs-14">Showing 1 to 2 of 2 entries</span>
-      
-      <nav aria-label="Table navigation">
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item disabled">
-            <a class="page-link shadow-none" href="#" aria-label="Previous">
-              <span aria-hidden="true">&laquo;</span>
-            </a>
-          </li>
-          <li class="page-item active"><a class="page-link shadow-none" href="#">1</a></li>
-          <li class="page-item"><a class="page-link shadow-none" href="#">2</a></li>
-          <li class="page-item">
-            <a class="page-link shadow-none" href="#" aria-label="Next">
-              <span aria-hidden="true">&raquo;</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </div>
+    <AgGridVue
+      class="ag-theme-quartz"
+      style="height: 500px; width: 100%"
+      :columnDefs="columnDefs"
+      :rowData="rowData"
+      :defaultColDef="{ sortable: true, filter: true, flex: 1 }"
+      :pagination="true"
+      @grid-ready="onGridReady"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref, reactive } from "vue";
+import { AgGridVue } from "ag-grid-vue3";
+import api from "@/utils/api";
 
 export default defineComponent({
-  name: "WorkingCalendarList",
+  components: { AgGridVue },
+  setup() {
+    const rowData = ref<any[]>([]);
+    const gridApi = ref<any>(null);
+    const branchOptions = ref<any[]>([]);
+    
+    const filter = reactive({
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear(),
+      branchId: ""
+    });
+
+    const columnDefs = ref([
+      { headerName: "No", valueGetter: "node.rowIndex + 1", width: 70 },
+      { 
+        headerName: "Tanggal", field: "workingDate", 
+        filter: 'agDateColumnFilter',
+        valueFormatter: (p: any) => {
+          if (!p.value) return "-";
+          const [y, m, d] = p.value.split('-');
+          return `${d}/${m}/${y}`;
+        }
+      },
+      { headerName: "Employee Name", field: "employeeName", filter: 'agSetColumnFilter' },
+      { headerName: "Shift", field: "shiftName" },
+      { headerName: "Check-in", field: "checkIn", width: 120 },
+      { headerName: "Check-out", field: "checkOut", width: 120 }
+    ]);
+
+    const fetchData = async () => {
+      if (!gridApi.value || !filter.branchId) return;
+      gridApi.value.showLoadingOverlay();
+      
+      try {
+        const listRes = await api.get(`/api/v1/master/shift/calendar/list`, {
+          params: { year: filter.year, month: filter.month, companyBranchId: filter.branchId }
+        });
+
+        const calendarDates = listRes.data?.data || [];
+        let combinedData: any[] = [];
+        
+        for (const dateItem of calendarDates) {
+          try {
+            const detailRes = await api.get(`/api/v1/master/shift/calendar/${dateItem.id}/detail`);
+            const employees = detailRes.data?.data || [];
+            
+            employees.forEach((emp: any) => {
+              combinedData.push({
+                workingDate: dateItem.workingDate,
+                employeeName: emp.employee?.fullName || "-",
+                shiftName: emp.shiftType?.shiftName || "-",
+                checkIn: emp.shiftType?.checkInTime || "-",
+                checkOut: emp.shiftType?.checkOutTime || "-"
+              });
+            });
+          } catch (e) { console.error("Error Detail:", e); }
+        }
+        rowData.value = combinedData;
+      } catch (error) {
+        console.error("Error Fetch Data:", error);
+      } finally {
+        gridApi.value.hideOverlay();
+      }
+    };
+
+    const onGridReady = async (params: any) => {
+      gridApi.value = params.api;
+      try {
+        const bRes = await api.get("/api/v1/master/company/branch/list");
+        branchOptions.value = bRes.data?.data || [];
+        if (branchOptions.value.length > 0) {
+          filter.branchId = branchOptions.value[0].id;
+          fetchData();
+        }
+      } catch (e) { console.error("Error Load Branch:", e); }
+    };
+
+    return { rowData, columnDefs, filter, branchOptions, onGridReady, fetchData };
+  },
 });
 </script>
+
+<style scoped>
+@import "ag-grid-community/styles/ag-grid.css";
+@import "ag-grid-community/styles/ag-theme-quartz.css";
+</style>
