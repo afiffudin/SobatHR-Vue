@@ -13,6 +13,8 @@ import WorkingCalendar from "@/pages/WorkingCalendar/WorkingCalendar.vue";
 import WorkingSchedule from "@/pages/WorkingSchedule/WorkingSchedule.vue";
 import DailyAttendancePage from "@/pages/DailyAttendance/DailyAttendancePage.vue";
 import AttendanceSummaryPage from "@/pages/AttendanceSummary/AttendanceSummaryPage.vue";
+import AttendancePage from "@/pages/Attendance/AttendancePage.vue";
+import AttendanceTemplate from "@/pages/Attendance/AttendanceTemplatePage.vue"
 import ShiftTypePage from "@/pages/ShiftType/ShiftTypePage.vue";
 import DashboardPage from "@/pages/Dashboard/DashboardUtamaPage.vue";
 import ProfilePage from "@/pages/ProfilPage/ProfilePage.vue";
@@ -107,6 +109,18 @@ const routes = [
     path: "/attendance-summary",
     name: "AttendanceSummaryPage",
     component: AttendanceSummaryPage,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/attendance/assignment",
+    name: "AttendancePage",
+    component: AttendancePage,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/attendance/template/download",
+    name: "AttendanceTemplate",
+    component: AttendanceTemplate,
     meta: { requiresAuth: true }
   },
   {

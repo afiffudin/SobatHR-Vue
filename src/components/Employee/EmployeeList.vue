@@ -1,9 +1,6 @@
 <template>
   <div class="card bg-white border-0 rounded-10 mb-4 p-4">
     <div class="d-sm-flex justify-content-between align-items-center mb-3">
-      <!-- <button class="btn btn-success text-white fw-medium px-3 btn-sm mt-2 mt-sm-0" @click="addEmployee">
-        + Add New Employee
-      </button> -->
       <div v-if="loading" class="spinner-border text-success" style="width: 1.5rem; height: 1.5rem;"></div>
     </div>
 
@@ -55,12 +52,21 @@
     <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
       <span class="text-muted fs-14">Showing {{ startRecord }} to {{ endRecord }} of {{ filteredEmployees.length }} entries</span>
       <nav>
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item" :class="{ disabled: currentPage === 1 }"><button class="page-link" @click="currentPage--">&laquo;</button></li>
-          <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
-            <button class="page-link" @click="currentPage = page">{{ page }}</button>
+        <ul class="pagination pagination-sm mb-0 align-items-center">
+          <li class="page-item" :class="{ disabled: currentPage === 1 }">
+            <button class="page-link" @click="currentPage--">&laquo;</button>
           </li>
-          <li class="page-item" :class="{ disabled: currentPage === totalPages || totalPages === 0 }"><button class="page-link" @click="currentPage++">&raquo;</button></li>
+          
+          <li v-for="(page, index) in visiblePages" :key="index" class="page-item" 
+              :class="{ active: currentPage === page, disabled: page === '...' }">
+            <button class="page-link" @click="typeof page === 'number' && (currentPage = page)">
+              {{ page }}
+            </button>
+          </li>
+
+          <li class="page-item" :class="{ disabled: currentPage === totalPages || totalPages === 0 }">
+            <button class="page-link" @click="currentPage++">&raquo;</button>
+          </li>
         </ul>
       </nav>
     </div>
@@ -76,10 +82,10 @@ export default defineComponent({
   name: "EmployeeList",
   setup() {
     const router = useRouter();
-    const loading = ref(false);
+    const loading = ref<boolean>(false);
     const employees = ref<any[]>([]);
-    const search = ref("");
-    const currentPage = ref(1);
+    const search = ref<string>("");
+    const currentPage = ref<number>(1);
     const pageSize = 10;
 
     const fetchEmployees = async () => {
@@ -103,19 +109,31 @@ export default defineComponent({
       );
     });
 
-    const totalPages = computed(() => Math.ceil(filteredEmployees.value.length / pageSize));
+    const totalPages = computed<number>(() => Math.ceil(filteredEmployees.value.length / pageSize));
 
     const paginatedEmployees = computed(() => {
       const start = (currentPage.value - 1) * pageSize;
       return filteredEmployees.value.slice(start, start + pageSize);
     });
 
+    // Logika Pagination Rapi (Ellipsis)
+    const visiblePages = computed<(number | string)[]>(() => {
+      const delta = 2;
+      const range: (number | string)[] = [];
+      const start = Math.max(2, currentPage.value - delta);
+      const end = Math.min(totalPages.value - 1, currentPage.value + delta);
+
+      for (let i = start; i <= end; i++) range.push(i);
+      
+      if (start > 2) range.unshift("...");
+      if (end < totalPages.value - 1) range.push("...");
+      
+      return totalPages.value > 1 ? [1, ...range, totalPages.value] : [1];
+    });
+
     const startRecord = computed(() => (filteredEmployees.value.length === 0 ? 0 : (currentPage.value - 1) * pageSize + 1));
     const endRecord = computed(() => Math.min(currentPage.value * pageSize, filteredEmployees.value.length));
 
-    const addEmployee = () => router.push("/employee/add");
-
-    // Navigasi menggunakan URL parameter
     const editEmployee = (employeeId: string) => {
       router.push(`/employee/edit/${employeeId}`);
     };
@@ -125,7 +143,7 @@ export default defineComponent({
     return {
       loading, employees, search, currentPage, pageSize,
       filteredEmployees, paginatedEmployees, totalPages,
-      startRecord, endRecord, addEmployee, editEmployee
+      visiblePages, startRecord, endRecord, editEmployee
     };
   },
 });
@@ -137,4 +155,9 @@ export default defineComponent({
 .bg-success-transparent { background-color: rgba(25, 135, 84, 0.1); }
 .bg-danger-transparent { background-color: rgba(220, 53, 69, 0.1); }
 .bg-primary-transparent { background-color: rgba(13, 110, 253, 0.1); }
+
+/* Styling Pagination Rapi */
+.page-link { color: #495057; padding: 0.4rem 0.75rem; border: 1px solid #dee2e6; cursor: pointer; }
+.page-item.active .page-link { background-color: #4263eb; border-color: #4263eb; color: white; }
+.page-item.disabled .page-link { color: #adb5bd; cursor: not-allowed; }
 </style>

@@ -16498,3 +16498,302 @@ iframe {
   border-color: #5c61f2; /* Warna khas Adlash saat fokus */
   box-shadow: none !important;
 }
+
+
+
+/* untuk working schedule */
+
+/* ── Page Layout ── */
+.shift-calendar-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+ 
+/* ── Filter Card ── */
+.filter-card {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+ 
+.filter-header {
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid #f1f3f5;
+  background: #f8f9fa;
+}
+ 
+.filter-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 2px;
+}
+ 
+.filter-title i {
+  font-size: 18px;
+  color: #4263eb;
+}
+ 
+.filter-subtitle {
+  font-size: 12px;
+  color: #868e96;
+  margin: 0;
+}
+ 
+.filter-body {
+  padding: 1rem 1.25rem;
+}
+ 
+/* ── Filter Grid (responsive) ── */
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+ 
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+ 
+.filter-action {
+  justify-content: flex-end;
+}
+ 
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+ 
+.field-label i {
+  font-size: 13px;
+  color: #868e96;
+}
+ 
+.field-select {
+  appearance: none;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23868e96' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 8px 32px 8px 10px;
+  font-size: 13px;
+  color: #212529;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+ 
+.field-select:hover {
+  border-color: #adb5bd;
+}
+ 
+.field-select:focus {
+  outline: none;
+  border-color: #4263eb;
+  box-shadow: 0 0 0 3px rgba(66, 99, 235, 0.12);
+}
+ 
+/* ── Refresh Button ── */
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  height: 38px;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #4263eb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+ 
+.btn-refresh:hover:not(:disabled) {
+  background: #3451c7;
+}
+ 
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+ 
+.btn-refresh i {
+  font-size: 15px;
+}
+ 
+/* ── Chips ── */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f3f5;
+}
+ 
+.chip-label {
+  font-size: 12px;
+  color: #adb5bd;
+}
+ 
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #4263eb;
+  background: #edf2ff;
+  border: 1px solid #bac8ff;
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+ 
+.chip i {
+  font-size: 12px;
+}
+ 
+/* ── Table Card ── */
+.table-card {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+ 
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f1f3f5;
+  background: #f8f9fa;
+}
+ 
+.table-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #212529;
+}
+ 
+.table-title i {
+  font-size: 18px;
+  color: #4263eb;
+}
+ 
+.row-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #2f9e44;
+  background: #ebfbee;
+  border: 1px solid #b2f2bb;
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+ 
+.row-count-badge i {
+  font-size: 13px;
+}
+ 
+/* ── States ── */
+.state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #868e96;
+  font-size: 14px;
+}
+ 
+.state-hint {
+  font-size: 12px;
+  color: #adb5bd;
+}
+ 
+/* ── Spinner ── */
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+ 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+ 
+/* ── AG Grid override ── */
+.ag-theme-quartz {
+  --ag-border-radius: 0;
+  --ag-border-color: #f1f3f5;
+  --ag-header-background-color: #f8f9fa;
+  --ag-header-foreground-color: #495057;
+  --ag-odd-row-background-color: #ffffff;
+  --ag-row-hover-color: #f8f9fa;
+  --ag-font-size: 13px;
+  border: none !important;
+}
+ 
+.ag-theme-quartz .ag-root-wrapper {
+  border: none !important;
+  border-radius: 0 !important;
+}
+ 
+.ag-theme-quartz .ag-header-cell-label {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+ 
+/* ── Responsive ── */
+@media (max-width: 576px) {
+  .shift-calendar-page {
+    padding: 0.75rem;
+  }
+ 
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
+ 
+  .filter-action {
+    order: 4;
+  }
+ 
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -59,39 +59,56 @@ export default defineComponent({
     const columnDefs = ref([
       { headerName: "Nama", valueGetter: (p: any) => p.data.employee?.fullName || '-' },
       { headerName: "No Pegawai", valueGetter: (p: any) => p.data.employee?.employeeEmploymentInfo?.employeeNo || '-' },
-      { headerName: "Cabang", valueGetter: (p: any) => p.data.employee?.employeeEmploymentInfo?.companyBranch?.name || '-' },
-      { field: "checkInTime", headerName: "Check In" },
+      { headerName: "Cabang", valueGetter: (p: any) => p.data.companyBranch?.name || '-' },
+      { field: "absentDate", headerName: "Tanggal" }, // Menambahkan tanggal karena API bersifat bulanan
+      { field: "checkInTime", headerName: "Check In", valueFormatter: (p: any) => p.value ? p.value.split('.')[0] : '-' },
       { field: "checkOutTime", headerName: "Check Out" }
     ]);
 
     const defaultColDef = { sortable: true, resizable: true };
 
     const fetchData = async () => {
+      // api attendance old
+      // loading.value = true;
+      // try {
+      //   const res = await api.get("/api/v1/attendance/employee/list", {
+      //     params: { 
+      //       datePeriod: selectedDate.value, 
+      //       absentStatus: attendanceStatus.value, 
+      //       companyBranchId: selectedBranchId.value || undefined 
+      //     }
+      //   });
       loading.value = true;
-      try {
-        const res = await api.get("/api/v1/attendance/employee/list", {
-          params: { 
-            datePeriod: selectedDate.value, 
-            absentStatus: attendanceStatus.value, 
-            companyBranchId: selectedBranchId.value || undefined 
-          }
-        });
-        rowData.value = res.data?.data?.attendanceData || res.data?.data || [];
-      } catch (err) {
-        console.error("Fetch error:", err);
-        rowData.value = [];
-      } finally {
-        loading.value = false;
+  try {
+    // Pecah dari input date yyyy-mm-dd
+    const [year, month] = selectedDate.value.split("-");
+    
+    const res = await api.get("/api/v1/attendance/list", {
+      params: { 
+        year: parseInt(year), 
+        month: parseInt(month), 
+        companyBranchId: selectedBranchId.value || undefined
       }
-    };
+    });
+    
+    // Akses ke 'content' sesuai struktur response Anda
+    rowData.value = res.data?.data?.content || [];
+  } catch (err) {
+    console.error("Fetch error:", err);
+    rowData.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
 
     const exportToExcel = () => {
       const ws = XLSX.utils.json_to_sheet(rowData.value.map(r => ({
+        Tanggal: r.absentDate,
         Nama: r.employee?.fullName,
         NoPegawai: r.employee?.employeeEmploymentInfo?.employeeNo,
-        Cabang: r.employee?.employeeEmploymentInfo?.companyBranch?.name,
-        CheckIn: r.checkInTime,
-        CheckOut: r.checkOutTime
+        Cabang: r.companyBranch?.name,
+        CheckIn: r.checkInTime?.split('.')[0],
+        CheckOut: r.checkOutTime?.split('.')[0]
       })));
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Attendance");

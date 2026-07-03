@@ -11,7 +11,7 @@
         to="/"
         class="d-flex align-items-center text-white text-decoration-none"
       >
-        <img src="../../assets/images/Sobathr logo white.png" alt="logo-icon" />
+        <img src="../../assets/images/Sobathr_logo_white.png" alt="logo-icon" />
         <span class="fw-bold ms-10"></span>
       </router-link>
       <div class="border-bottom"></div>
@@ -131,6 +131,22 @@
                     class="sidebar-sub-menu-link"
                   >
                     Working Schedule
+                  </router-link>
+                </li>
+                <li class="sidebar-sub-menu-item">
+                  <router-link
+                    to="/attendance/template/download"
+                    class="sidebar-sub-menu-link"
+                  >
+                    Download Attendance Template
+                  </router-link>
+                </li>
+                <li class="sidebar-sub-menu-item">
+                  <router-link
+                    to="/attendance/assignment"
+                    class="sidebar-sub-menu-link"
+                  >
+                    Import Assignment Shift
                   </router-link>
                 </li>
 

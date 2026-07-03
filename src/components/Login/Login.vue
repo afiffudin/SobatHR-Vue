@@ -1,7 +1,6 @@
 <template>
   <div class="login-page">
 
-    <!-- Bubbles: pakai inline style agar tidak terkena scoped -->
     <span
       v-for="b in bubbles"
       :key="b.id"
@@ -12,18 +11,7 @@
     <!-- Logo area -->
     <div class="login-top">
       <div class="logo-row">
-        <svg width="50" height="62" viewBox="0 0 52 68" fill="none" aria-hidden="true">
-          <circle cx="26" cy="11" r="8" fill="rgba(255,255,255,.95)"/>
-          <path d="M16 22 Q4 36 10 51 Q16 63 26 58" stroke="rgba(255,255,255,.95)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-          <path d="M36 22 Q48 36 42 51 Q36 63 26 58" stroke="rgba(255,255,255,.6)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-          <line x1="26" y1="28" x2="26" y2="50" stroke="rgba(255,255,255,.95)" stroke-width="4.5" stroke-linecap="round"/>
-          <path d="M26 50 Q18 60 14 68" stroke="rgba(255,255,255,.6)" stroke-width="4" stroke-linecap="round" fill="none"/>
-          <path d="M26 50 Q34 60 38 68" stroke="rgba(255,255,255,.95)" stroke-width="4" stroke-linecap="round" fill="none"/>
-        </svg>
-        <div class="logo-text">
-          <span class="logo-name">Sobat<em>HR</em></span>
-          <span class="logo-tagline">Payroll &amp; HR Solutions</span>
-        </div>
+        <img src="@/assets/images/Sobathr_logo_white.png" alt="SobatHR Logo" class="logo-img" />
       </div>
     </div>
 
@@ -75,17 +63,30 @@
           </div>
         </div>
 
-        <!-- <div class="forgot-row">
-          <a href="#" class="forgot-link">Lupa kata sandi?</a>
-        </div> -->
-
         <button type="submit" class="login-btn" :disabled="loading">
-          <span v-if="loading" class="btn-spin" aria-hidden="true"></span>
-          <span>{{ loading ? 'Memproses...' : 'Masuk' }}</span>
+          <span v-if="!loading">Masuk</span>
+          <!-- Loading pakai logo -->
+          <span v-else class="logo-loader" aria-label="Memproses...">
+            <img src="@/assets/images/Sobathr_logo_white.png" alt="" class="logo-spin-img" />
+            <span class="loading-text">Memproses...</span>
+          </span>
         </button>
 
       </form>
     </div>
+
+    <!-- Full-screen overlay loader (opsional, muncul setelah login sukses) -->
+    <transition name="fade-overlay">
+      <div v-if="redirecting" class="full-loader">
+        <div class="full-loader-inner">
+          <img src="@/assets/images/Sobathr_logo_white.png" alt="SobatHR" class="full-loader-logo" />
+          <div class="full-loader-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </transition>
+
   </div>
 </template>
 
@@ -102,6 +103,7 @@ export default defineComponent({
     const password     = ref<string>("");
     const loading      = ref<boolean>(false);
     const showPassword = ref<boolean>(false);
+    const redirecting  = ref<boolean>(false); // overlay after login success
     const router       = useRouter();
 
     /* ── Bubbles ── */
@@ -131,7 +133,6 @@ export default defineComponent({
       },
     }));
 
-    /* ── Inject global keyframe (sekali saja) ── */
     let styleEl: HTMLStyleElement | null = null;
     onMounted(() => {
       if (!document.getElementById("lb-bubble-style")) {
@@ -139,10 +140,17 @@ export default defineComponent({
         styleEl.id = "lb-bubble-style";
         styleEl.textContent = `
           @keyframes lbFloat {
-            0%,100% { transform: translateY(0)    scale(1);    }
+            0%,100% { transform: translateY(0) scale(1); }
             50%      { transform: translateY(-18px) scale(1.04); }
           }
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+          @keyframes logoPulse {
+            0%,100% { transform: scale(1);    opacity: 1;   }
+            50%      { transform: scale(1.12); opacity: 0.7; }
+          }
+          @keyframes dotBounce {
+            0%,80%,100% { transform: translateY(0); opacity: .4; }
+            40%          { transform: translateY(-8px); opacity: 1; }
+          }
         `;
         document.head.appendChild(styleEl);
       }
@@ -153,16 +161,16 @@ export default defineComponent({
       }
     });
 
-    /* ── SweetAlert2 Toast helper ── */
+    /* ── Toast ── */
     const Toast = Swal.mixin({
       toast: true,
       position: "top",
       showConfirmButton: false,
-      timer: 0,                 // diatur manual per panggilan
+      timer: 0,
       timerProgressBar: true,
       showCloseButton: true,
       customClass: {
-        popup:        "lb-toast-popup",
+        popup: "lb-toast-popup",
         timerProgressBar: "lb-toast-bar",
       },
       didOpen: (popup) => {
@@ -176,11 +184,9 @@ export default defineComponent({
       title: string,
       text: string,
       timer = 4000
-    ) => {
-      Toast.fire({ icon, title, text, timer });
-    };
+    ) => Toast.fire({ icon, title, text, timer });
 
-    /* ── Login handler ── */
+    /* ── Login ── */
     const handleLogin = async () => {
       if (!emailAddress.value.trim()) {
         showToast("warning", "Email wajib diisi", "Masukkan alamat email Anda.", 0);
@@ -213,6 +219,9 @@ export default defineComponent({
 
           const name = userData.fullName || userData.accountName || userData.registeredName || "Anda";
           showToast("success", "Login berhasil!", `Selamat datang kembali, ${name}.`, 3000);
+
+          // Tampilkan full-screen logo loader sebelum redirect
+          redirecting.value = true;
           setTimeout(() => router.push("/"), 1500);
         } else {
           showToast("error", "Login gagal", response.data?.message || "Gagal mendapatkan data akun.", 0);
@@ -220,70 +229,29 @@ export default defineComponent({
 
       } catch (error: any) {
         const status    = error?.response?.status;
-        const serverMsg: string = (error?.response?.data?.message || "").toLowerCase();
+        const serverMsg = (error?.response?.data?.message || "").toLowerCase();
 
         if (status === 401) {
-          // Coba deteksi dari pesan server apakah email atau password yang salah
-          const isEmailWrong =
-            serverMsg.includes("email") ||
-            serverMsg.includes("not found") ||
-            serverMsg.includes("tidak ditemukan") ||
-            serverMsg.includes("not registered") ||
-            serverMsg.includes("belum terdaftar") ||
-            serverMsg.includes("user not") ||
-            serverMsg.includes("account not");
-
-          const isPasswordWrong =
-            serverMsg.includes("password") ||
-            serverMsg.includes("kata sandi") ||
-            serverMsg.includes("wrong password") ||
-            serverMsg.includes("incorrect") ||
-            serverMsg.includes("invalid credential") ||
-            serverMsg.includes("salah");
+          const isEmailWrong = serverMsg.includes("email") || serverMsg.includes("not found") || serverMsg.includes("tidak ditemukan") || serverMsg.includes("not registered") || serverMsg.includes("belum terdaftar");
+          const isPasswordWrong = serverMsg.includes("password") || serverMsg.includes("kata sandi") || serverMsg.includes("wrong password") || serverMsg.includes("incorrect") || serverMsg.includes("invalid credential") || serverMsg.includes("salah");
 
           if (isEmailWrong && !isPasswordWrong) {
-            showToast(
-              "error",
-              "Email tidak ditemukan",
-              "Alamat email Anda belum terdaftar. Periksa kembali.",
-              0
-            );
+            showToast("error", "Email tidak ditemukan", "Alamat email Anda belum terdaftar. Periksa kembali.", 0);
           } else if (isPasswordWrong && !isEmailWrong) {
-            showToast(
-              "error",
-              "Kata sandi salah",
-              "Kata sandi Anda tidak sesuai. Harap dicek kembali.",
-              0
-            );
+            showToast("error", "Kata sandi salah", "Kata sandi Anda tidak sesuai. Harap dicek kembali.", 0);
           } else {
-            // Server tidak memberi info spesifik — tampilkan dua kemungkinan
-            showToast(
-              "error",
-              "Email atau kata sandi salah",
-              "Periksa kembali email dan kata sandi Anda.",
-              0
-            );
+            showToast("error", "Email atau kata sandi salah", "Periksa kembali email dan kata sandi Anda.", 0);
           }
         } else if (status === 403) {
           showToast("error", "Akun dinonaktifkan", "Hubungi administrator untuk bantuan.", 0);
         } else if (status === 404) {
-          showToast(
-            "error",
-            "Email tidak ditemukan",
-            "Alamat email Anda belum terdaftar di sistem.",
-            0
-          );
+          showToast("error", "Email tidak ditemukan", "Alamat email Anda belum terdaftar di sistem.", 0);
         } else if (status === 429) {
           showToast("warning", "Terlalu banyak percobaan", "Tunggu beberapa menit lalu coba lagi.", 0);
         } else if (!navigator.onLine) {
           showToast("error", "Tidak ada koneksi", "Periksa jaringan Anda lalu coba lagi.", 0);
         } else {
-          showToast(
-            "error",
-            "Terjadi kesalahan",
-            error?.response?.data?.message || "Server tidak merespons. Coba lagi.",
-            0
-          );
+          showToast("error", "Terjadi kesalahan", error?.response?.data?.message || "Server tidak merespons. Coba lagi.", 0);
         }
       } finally {
         loading.value = false;
@@ -292,17 +260,15 @@ export default defineComponent({
 
     return {
       emailAddress, password, loading, showPassword,
-      bubbles, handleLogin,
+      redirecting, bubbles, handleLogin,
     };
   },
 });
 </script>
 
 <style scoped>
-/* ── Font ── */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-/* ── Page ── */
 .login-page {
   min-height: 100vh;
   background: #C8940F;
@@ -321,11 +287,15 @@ export default defineComponent({
   display: flex;
   justify-content: center;
 }
-.logo-row    { display: flex; align-items: center; gap: 14px; }
-.logo-text   { display: flex; flex-direction: column; gap: 4px; }
-.logo-name   { font-size: 32px; font-weight: 800; color: #fff; letter-spacing: -.5px; line-height: 1; display: block; }
-.logo-name em{ font-style: normal; color: rgba(255,255,255,.6); }
-.logo-tagline{ font-size: 11px; color: rgba(255,255,255,.6); letter-spacing: .7px; text-transform: uppercase; font-weight: 500; }
+.logo-row { display: flex; align-items: center; justify-content: center; }
+
+/* Logo PNG — sesuaikan ukuran sesuai selera */
+.logo-img {
+  height: 90px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+}
 
 /* ── Card ── */
 .login-card {
@@ -369,11 +339,6 @@ export default defineComponent({
 }
 .eye-btn:hover { color: #8a7030; }
 
-/* ── Forgot ── */
-.forgot-row { text-align: right; margin: -4px 0 22px; }
-.forgot-link { font-size: 12.5px; font-weight: 600; color: #C8940F; text-decoration: none; }
-.forgot-link:hover { text-decoration: underline; }
-
 /* ── Button ── */
 .login-btn {
   width: 100%; background: #C8940F; color: #fff; border: none;
@@ -382,16 +347,72 @@ export default defineComponent({
   cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
   transition: background .2s, transform .1s, box-shadow .2s;
   box-shadow: 0 4px 18px rgba(200,148,15,.40);
+  min-height: 52px;
 }
 .login-btn:hover:not(:disabled)  { background: #a87a0c; box-shadow: 0 6px 22px rgba(200,148,15,.48); }
 .login-btn:active:not(:disabled) { transform: scale(.98); }
-.login-btn:disabled              { opacity: .65; cursor: not-allowed; box-shadow: none; }
-.btn-spin {
-  width: 15px; height: 15px;
-  border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff;
-  border-radius: 50%; animation: bspin .65s linear infinite; flex-shrink: 0;
+.login-btn:disabled              { opacity: .75; cursor: not-allowed; box-shadow: none; }
+
+/* ── Logo loading di dalam button ── */
+.logo-loader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-@keyframes bspin { to { transform: rotate(360deg); } }
+.logo-spin-img {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+  animation: logoPulse 1s ease-in-out infinite;
+  /* karena background button kuning, logo putih akan terlihat */
+}
+.loading-text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ── Full screen overlay loader ── */
+.full-loader {
+  position: fixed;
+  inset: 0;
+  background: #C8940F;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.full-loader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+.full-loader-logo {
+  height: 72px;
+  width: auto;
+  object-fit: contain;
+  animation: logoPulse 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.2));
+}
+.full-loader-dots {
+  display: flex;
+  gap: 8px;
+}
+.full-loader-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  animation: dotBounce 1.2s ease-in-out infinite;
+}
+.full-loader-dots span:nth-child(2) { animation-delay: .2s; }
+.full-loader-dots span:nth-child(3) { animation-delay: .4s; }
+
+/* ── Transition overlay ── */
+.fade-overlay-enter-active { transition: opacity .3s ease; }
+.fade-overlay-leave-active { transition: opacity .4s ease; }
+.fade-overlay-enter-from,
+.fade-overlay-leave-to    { opacity: 0; }
 
 /* ── Responsive ── */
 @media (min-width: 600px) {
@@ -414,12 +435,11 @@ export default defineComponent({
 @media (max-width: 360px) {
   .login-card { padding: 28px 20px 40px; }
   .login-top  { padding: 40px 20px 56px; }
-  .logo-name  { font-size: 26px; }
+  .logo-img   { height: 44px; }
 }
 </style>
 
 <style>
-/* SweetAlert2 toast override — TIDAK scoped agar bisa style popup global */
 .lb-toast-popup {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
   border-radius: 14px !important;
@@ -429,18 +449,13 @@ export default defineComponent({
   max-width: 360px !important;
 }
 .lb-toast-popup .swal2-title {
-  font-size: 14px !important;
-  font-weight: 700 !important;
-  color: #1a1a1a !important;
-  padding: 0 !important;
-  margin: 0 0 2px !important;
+  font-size: 14px !important; font-weight: 700 !important;
+  color: #1a1a1a !important; padding: 0 !important; margin: 0 0 2px !important;
 }
 .lb-toast-popup .swal2-html-container,
 .lb-toast-popup .swal2-content {
-  font-size: 12.5px !important;
-  color: #555 !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  font-size: 12.5px !important; color: #555 !important;
+  margin: 0 !important; padding: 0 !important;
 }
 .lb-toast-popup.swal2-icon-success { border-left: 4px solid #1D9E75 !important; }
 .lb-toast-popup.swal2-icon-error   { border-left: 4px solid #E24B4A !important; }
