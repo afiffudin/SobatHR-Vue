@@ -40,3 +40,47 @@ npm run dev
 ```sh
 npm run build
 ```
+
+
+
+
+
+
+# HRIS Dashboard — React + TypeScript
+
+A modern, responsive HRIS dashboard for managing employees, attendance, and Earned Wage Access (EWA). Built with a focus on clean frontend architecture, performance, and scalability.
+
+**Live Demo:** https://curly-kissee-afif-dev-977fdaad.koyeb.app/#keahlian
+**Portfolio:** https://curly-kissee-afif-dev-977fdaad.koyeb.app
+**Author:** M. Afifudin Yusup — https://github.com/afiffudin
+
+---
+
+## ✨ Features
+
+- **Employee Management** — Search, filter, and manage employee data
+- **Attendance Dashboard** — Real-time attendance overview with date filtering
+- **EWA / Payroll Overview** — Salary and earned wage access summary
+- **Responsive Design** — Fully responsive, mobile to desktop
+- **Reusable Components** — Clean component architecture, easy to scale
+- **Type-Safe** — Full TypeScript, no `any` in core logic
+
+## 🛠 Tech Stack
+
+- **Frontend:** React.js + TypeScript + Vite
+- **Styling:** Tailwind CSS
+- **State Management:** React Hooks / Context
+- **API:** REST API + Node.js
+- **Database:** PostgreSQL
+- **Deployment:** Docker + Koyeb / Vercel
+
+## 📁 Project Structure
+
+```bash
+src/
+├── components/      # Reusable UI components
+├── pages/           # Dashboard, Employee, Attendance
+├── hooks/           # Custom hooks
+├── services/        # API calls
+├── types/           # TypeScript types
+└── App.tsx          # Main entry
